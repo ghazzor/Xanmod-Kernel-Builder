@@ -43,10 +43,11 @@ git clone --depth=1 https://gitlab.com/xanmod/linux -b 6.1 kernel/xanmod
 ```shell
 sudo apt update
 sudo apt upgrade
-sudo apt install gcc clang llvm lld g++ build-essential bison flex pkg-config qtcreator qtbase5-dev qt5-qmake qttools5-dev-tools libssl-dev libncurses-dev libelf-dev elfutils -y 
+sudo apt install gcc clang llvm lld g++ build-essential bison flex pkg-config qtcreator qtbase5-dev qt5-qmake qttools5-dev-tools libssl-dev libncurses-dev libelf-dev elfutils lz4 debhelper dh-virtualenv zstd -y 
 ```
 4. If you less than 16 gb ram then add some disk swap or zram , you can google it
-   i have 12 gb of DDR4 , so i added some zram , which made the build process slightly faster 
+   i have 12 gb of DDR4 , so i added some zram , which made the build process slightly faster
+   
 5. We are going to use `make localmodconfig` to make a stripped down config, It Create a config based on current config and loaded modules (lsmod). Disables any module option that is not needed for the loadedmodules. Make sure to connect all the usb devices and turn on bluetooth and be connected to internet then cd to `kernel/xanmod` and run
 
 ```shell
@@ -72,7 +73,14 @@ make CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 menuconfig
  you can use xconfig and menuconfig for that as they allow searching these configs and automatically adapt the config , now save your config and lets start the build
 
 ```shell
-make CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 LOCALVERSION=-xanmod-clang deb-pkg -j$(nproc)
+make \
+  CC=clang \
+  LD=ld.lld \
+  LLVM=1 \
+  LLVM_IAS=1 \
+  LOCALVERSION=-xanmod-clang \
+  deb-pkg \
+  -j$(nproc)
 ```
  the **`deb-pkg`** neatly packs the kernel into .deb files which are very easy to install
 
