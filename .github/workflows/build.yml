@@ -1,18 +1,16 @@
 name: build
 
 on:
-
   workflow_dispatch:
-   inputs:
-    LLVM_VER:
+    inputs:
+      LLVM_VER:
         description: 'LLVM_VER (Specify LLVM Version)'
         required: true
         default: '19'
-    
-    KERNEL_VER:
-        description: 'KERNEL_VER (Specify XANMOD branch you want to build (check gitlab branches of xanmod))'
+      KERNEL_VER:
+        description: 'KERNEL_VER (Specify XANMOD branch to build)'
         required: true
-        default: '6.1'
+        default: '6.6'
 
 jobs:
   build:
@@ -23,16 +21,35 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-    
+
       - name: Install packages & setup
         run: |
           sudo apt update
-          sudo apt purge firefox -y
           sudo apt upgrade
-          sudo apt install wget build-essential bison flex pkg-config qtcreator qtbase5-dev qt5-qmake qttools5-dev-tools libssl-dev libncurses-dev git libelf-dev elfutils -y
+          sudo apt purge firefox -y
           
+          sudo apt install \
+            wget \
+            build-essential \
+            bison \
+            flex \
+            pkg-config \
+            qtcreator \
+            qtbase5-dev \
+            qt5-qmake \
+            qttools5-dev-tools \
+            libssl-dev \
+            libncurses-dev \
+            git \
+            libelf-dev \
+            lz4 \
+            debhelper \
+            dh-virtualenv \
+            zstd \
+            elfutils -y
+
       - name: Setup Clang/LLVM
-        run: |    
+        run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh ${{ github.event.inputs.LLVM_VER }}
@@ -45,7 +62,6 @@ jobs:
       - name: Clone Kernel Source
         run: |
           git clone --depth=1 https://gitlab.com/xanmod/linux -b ${{ github.event.inputs.KERNEL_VER }} kernel/xanmod
-          
 
       - name: Run Build
         run: |
@@ -54,18 +70,22 @@ jobs:
           make clean
           rm -rf vmlinux-gdb.py
           export LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}
-          make CC=clang${LLVM_SUFFIX} LLVM=1 LLVM_IAS=1 LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }} LOCALVERSION=-xanmod-${{ github.event.inputs.KERNEL_VER }}-clang-${{ github.event.inputs.LLVM_VER }} deb-pkg -j$(nproc)
+          make \
+            CC=clang${LLVM_SUFFIX} \
+            LD=ld.lld${LLVM_SUFFIX} \
+            LLVM=1 \
+            LLVM_IAS=1 \
+            LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }} \
+            LOCALVERSION=-xanmod-${{ github.event.inputs.KERNEL_VER }}-clang-${{ github.event.inputs.LLVM_VER }} \
+            deb-pkg -j$(nproc)
+
           cd ..
           cp xanmod/.config config
-          rm -rf xanmod
-          rm -rf *.gz
-          rm -rf *.dsc
-          rm -rf *.buildinfo
-          rm -rf *.changes
+          rm -rf xanmod *.gz *.dsc *.buildinfo *.changes 
 
       - name: Upload kernel
         uses: actions/upload-artifact@v4
         with:
-          name: Kernel-Build
+          name: Xanmod-${{ github.event.inputs.KERNEL_VER }}-${{ github.event.inputs.LLVM_VER }}
           path: kernel/
           compression-level: 9
