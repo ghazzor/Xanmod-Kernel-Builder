@@ -29,7 +29,7 @@ jobs:
           sudo apt update
           sudo apt purge firefox -y
           sudo apt upgrade
-          sudo apt install wget gcc-13 g++-13 build-essential lz4 zstd bison flex pkg-config qtcreator qtbase5-dev qt5-qmake qttools5-dev-tools libssl-dev libncurses-dev git libelf-dev elfutils -y
+          sudo apt install wget gcc-13 g++-13 build-essential lz4 debhelper dh-virtualenv zstd bison flex pkg-config qtcreator qtbase5-dev qt5-qmake qttools5-dev-tools libssl-dev libncurses-dev git libelf-dev elfutils -y
           
       - name: Setup Clang/LLVM
         run: |    
