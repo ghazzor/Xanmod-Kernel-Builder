@@ -13,7 +13,6 @@ on:
         description: 'KERNEL_VER (Specify XANMOD branch you want to build (check gitlab branches of xanmod))'
         required: true
         default: '6.1'
- '
 
 jobs:
   build:
