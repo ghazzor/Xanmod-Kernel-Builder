@@ -11,6 +11,7 @@ It builds with Clang/LLVM 19 , its the latest as the time of writing
 The config in repo build a kernel specifically for my laptop (**DO** no use it) 
 
 `build` builds non-generic kernel , it uses `config` in repo
+
 `build_generic` builds gereric kernel (builds 4 versions) with `Full LTO` and `CONFIG_PREEMPT=y` , it uses `config_general` in repo
 
 ![Alt text](image.png)
