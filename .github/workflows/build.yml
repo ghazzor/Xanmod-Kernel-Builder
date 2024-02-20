@@ -15,13 +15,17 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - config: v1
+        # - config: v2
+        # - config: v3
+        # - config: v4
+    name: "🚧 Build for ${{matrix.config}}"
 
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-
       - name: Install packages & setup
         run: |
           sudo apt update
@@ -65,11 +69,19 @@ jobs:
 
       - name: Run Build
         run: |
-          cp config kernel/xanmod/.config
           cd kernel/xanmod
           make clean
           rm -rf vmlinux-gdb.py
           export LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}
+          make \
+            CC=clang${LLVM_SUFFIX} \
+            LD=ld.lld${LLVM_SUFFIX} \
+            LLVM=1 \
+            LLVM_IAS=1 \
+            LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }} \
+            LOCALVERSION=-xanmod-${{ github.event.inputs.KERNEL_VER }}-clang-${{ github.event.inputs.LLVM_VER }} \
+            config_x86-64-{{ matrix.config }}
+            
           make \
             CC=clang${LLVM_SUFFIX} \
             LD=ld.lld${LLVM_SUFFIX} \
@@ -83,9 +95,9 @@ jobs:
           cp xanmod/.config config
           rm -rf xanmod *.gz *.dsc *.buildinfo *.changes 
 
-      - name: Upload kernel
+      - name: Upload-Kernel
         uses: actions/upload-artifact@v4
         with:
-          name: Xanmod-${{ github.event.inputs.KERNEL_VER }}-${{ github.event.inputs.LLVM_VER }}
+          name: Xanmod-${{ github.event.inputs.KERNEL_VER }}-${{ github.event.inputs.LLVM_VER }}-config_x86-64-{{ matrix.config }}
           path: kernel/
           compression-level: 9
