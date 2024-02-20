@@ -1,6 +1,6 @@
 ### **Xanmod-Kernel-Builder**
-An extremely simple basic workflow to build xanmod kernel for your device
-This builds a xanmod kernel with the multiple versions **Clang/LLVM** **`LLVM=1`** and **`LLVM_IAS=1`** for debian/ubuntu distros , can be easily edited to support arch linux
+An extremely simple & basic workflow to build xanmod kernel for your device
+This builds a xanmod kernel with the multiple versions **Clang/LLVM** with **`LLVM=1`** and **`LLVM_IAS=1`** for debian/ubuntu distros (can be easily edited to support arch linux)
 
 
 It uses this script to setup LLVM 
@@ -8,9 +8,13 @@ https://apt.llvm.org/llvm.sh
 
 It builds with Clang/LLVM 19 , its the latest as the time of writing
 
+The config in repo build a kernel specifically for my laptop (**DO** no use it) 
 
-The config in repo build a kernel specifically for my laptop , and this workflow has been made for non-generic kernel builds (hardware-specfic)
-but it can be easily modified to make generic builds too , just specify your config in the workflow
+`build` builds non-generic kernel , it uses `config` in repo
+`build_generic` builds gereric kernel (builds 4 versions) with `Full LTO` and `CONFIG_PREEMPT=y` , it uses `config_general` in repo
+
+![Alt text](image.png)
+kanged form : https://xanmod.org/
 
 #### Notice
 
@@ -24,6 +28,8 @@ file in repo)
 
 
 #### **To easily create a device-specfic config here is a noob-friendly guide**
+
+`// if you dont want to make a config just use the generic builds //` 
 
 1. Install the xanmod kernel you want build , lets say you want to build kernel 6.1 lts , so you would install the official **xanmod 6.1** build , boot into it
 
@@ -48,12 +54,12 @@ sudo apt install gcc clang llvm lld g++ build-essential bison flex pkg-config qt
 4. If you less than 16 gb ram then add some disk swap or zram , you can google it
    i have 12 gb of DDR4 , so i added some zram , which made the build process slightly faster
    
-5. We are going to use `make localmodconfig` to make a stripped down config, It Create a config based on current config and loaded modules (lsmod). Disables any module option that is not needed for the loadedmodules. Make sure to connect all the usb devices and turn on bluetooth and be connected to internet then cd to `kernel/xanmod` and run
+5. We are going to use `make localyesconfig` to make a stripped down config, It Create a config based on current config and loaded modules (lsmod). Disables any module option that is not needed for the loadedmodules. Make sure to connect all the usb devices and turn on bluetooth and be connected to internet then cd to `kernel/xanmod` and run
 
 ```shell
 make distclean
 rm -rf vmlinux-gdb.py
-make localmodconfig
+make localyesconfig
 ```
  then 
 ```shell
@@ -64,7 +70,7 @@ or
 make CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 menuconfig
 ``` 
 
- both `xconfig` and `menuconfig` have gui , which can be used to edit the config genrated by `make localmodconfig` , you can enable some stuff here like **lto** , **kvm support** , weather to optmize for **size** or **performance** , **cpu specfic optmizations** etc and other stuff that you are going to use
+ both `xconfig` and `menuconfig` have gui , which can be used to edit the config genrated by `make localyesconfig` , you can enable some stuff here like **lto** , **kvm support** , weather to optmize for **size** or **performance** , **cpu specfic optmizations** etc and other stuff that you are going to use
 
  **NEVER** enable **`CONFIG_MNATIVE_AMD`** or **`CONFIG_MNATIVE_INTEL`** because it optmizes for the processor the kernel was built on , rather specify your processor specfically because you are going to build on a **workflow** , if you are going to build locally and use the kernel on the same machine then enable them
 
