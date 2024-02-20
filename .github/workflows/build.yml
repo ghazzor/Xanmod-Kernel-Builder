@@ -69,9 +69,10 @@ jobs:
 
       - name: Run Build
         run: |
+          cp lto.config kernel/xanmod/arch/x86/configs/lto.config
           cd kernel/xanmod
           make clean
-          
+          cp CONFIGS/xanmod/gcc/config_x86-64-${{ matrix.config }} arch/x86/configs/${{ matrix.config }}_defconfig 
           rm -rf vmlinux-gdb.py
           export LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}
           export CONFIG_LTO_CLANG=y
@@ -89,8 +90,7 @@ jobs:
           CONFIG_LTO_CLANG=y            
           LOCALVERSION=-xanmod-${{ github.event.inputs.KERNEL_VER }}-clang-${{ github.event.inputs.LLVM_VER }}
           '
-          
-          make ${ARGS} CONFIGS/xanmod/gcc/config_x86-64-${{ matrix.config }}
+          make ${ARGS} ${{ matrix.config }}_defconfig lto.config
           make ${ARGS} deb-pkg -j$(nproc)
           
           cd ..
