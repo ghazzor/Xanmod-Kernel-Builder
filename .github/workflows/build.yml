@@ -70,18 +70,10 @@ jobs:
       - name: Run Build
         run: |
           cd kernel/xanmod
+          cp CONFIGS/xanmod/gcc/config_x86-64-${{ matrix.config }} .config
           make clean
           rm -rf vmlinux-gdb.py
           export LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}
-          make \
-            CC=clang${LLVM_SUFFIX} \
-            LD=ld.lld${LLVM_SUFFIX} \
-            LLVM=1 \
-            LLVM_IAS=1 \
-            LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }} \
-            LOCALVERSION=-xanmod-${{ github.event.inputs.KERNEL_VER }}-clang-${{ github.event.inputs.LLVM_VER }} \
-            config_x86-64-${{ matrix.config }}
-            
           make \
             CC=clang${LLVM_SUFFIX} \
             LD=ld.lld${LLVM_SUFFIX} \
