@@ -72,8 +72,15 @@ jobs:
           cd kernel/xanmod
           cp CONFIGS/xanmod/gcc/config_x86-64-${{ matrix.config }} .config
           make clean
+          
           rm -rf vmlinux-gdb.py
           export LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}
+          
+          sed -i '/^LTO_CLANG_FULL=.*$/d' .config
+          sed -i '/^CONFIG_LTO_NONE=.*$/d' .config
+          sed -i 's/^CONFIG_LTO_CLANG=(.*)$/CONFIG_LTO_CLANG=y/' .config
+          sed -i 's/^LTO_CLANG_FULL=(.*)$/LTO_CLANG_FULL=y/' .config
+          
           make \
             CC=clang${LLVM_SUFFIX} \
             LD=ld.lld${LLVM_SUFFIX} \
