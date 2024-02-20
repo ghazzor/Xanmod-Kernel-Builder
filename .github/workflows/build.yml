@@ -23,7 +23,7 @@ jobs:
           - config: v2
           - config: v3
           - config: v4
-    name: "🚧 Build for ${{matrix.config}}"
+    name: "🚧 Build Xanmod for x86-64-${{matrix.config}}"
 
     steps:
       - name: Install packages & setup
@@ -70,28 +70,29 @@ jobs:
       - name: Run Build
         run: |
           cd kernel/xanmod
-          cp CONFIGS/xanmod/gcc/config_x86-64-${{ matrix.config }} .config
           make clean
           
           rm -rf vmlinux-gdb.py
           export LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}
+          export CONFIG_LTO_CLANG=y
+          export LTO_CLANG_FULL=y
+          CONFIG_LTO_CLANG=y
+          LTO_CLANG_FULL=y
           
-          sed -i '/^LTO_CLANG_FULL=.*$/d' .config
-          sed -i '/^CONFIG_LTO_NONE=.*$/d' .config
-          sed -i 's/^CONFIG_LTO_CLANG=(.*)$/CONFIG_LTO_CLANG=y/' .config
-          sed -i 's/^LTO_CLANG_FULL=(.*)$/LTO_CLANG_FULL=y/' .config
+          ARGS='
+          CC=clang${LLVM_SUFFIX}
+          LD=ld.lld${LLVM_SUFFIX}
+          LLVM=1
+          LLVM_IAS=1
+          LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}
+          LTO_CLANG_FULL=y
+          CONFIG_LTO_CLANG=y            
+          LOCALVERSION=-xanmod-${{ github.event.inputs.KERNEL_VER }}-clang-${{ github.event.inputs.LLVM_VER }}
+          '
           
-          make \
-            CC=clang${LLVM_SUFFIX} \
-            LD=ld.lld${LLVM_SUFFIX} \
-            LLVM=1 \
-            LLVM_IAS=1 \
-            LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }} \
-            LTO_CLANG_FULL=y
-            CONFIG_LTO_CLANG=y
-            LOCALVERSION=-xanmod-${{ github.event.inputs.KERNEL_VER }}-clang-${{ github.event.inputs.LLVM_VER }} \
-            deb-pkg -j$(nproc)
-
+          make ${ARGS} CONFIGS/xanmod/gcc/config_x86-64-${{ matrix.config }}
+          make ${ARGS} deb-pkg -j$(nproc)
+          
           cd ..
           cp xanmod/.config config
           rm -rf xanmod *.gz *.dsc *.buildinfo *.changes 
