@@ -20,9 +20,9 @@ jobs:
       matrix:
         include:
           - config: v1
-        # - config: v2
-        # - config: v3
-        # - config: v4
+          - config: v2
+          - config: v3
+          - config: v4
     name: "🚧 Build for ${{matrix.config}}"
 
     steps:
@@ -80,6 +80,8 @@ jobs:
             LLVM=1 \
             LLVM_IAS=1 \
             LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }} \
+            LTO_CLANG_FULL=y
+            CONFIG_LTO_CLANG=y
             LOCALVERSION=-xanmod-${{ github.event.inputs.KERNEL_VER }}-clang-${{ github.event.inputs.LLVM_VER }} \
             deb-pkg -j$(nproc)
 
