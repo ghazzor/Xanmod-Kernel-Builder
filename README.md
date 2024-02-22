@@ -29,7 +29,14 @@ Kanged from: https://xanmod.org/ (xanmod website)
 
 `// if you dont want to make a config just use the generic builds //` 
 
-1. Install the Xanmod kernel you want to build; for example, to build kernel 6.1 LTS, install the official Xanmod 6.1 build and boot into it.
+#### **Prerequisites:**
+```> Basic command-line experience , like using `cd` , basic `bash` etc. ```
+
+```> Approximately 10-20 GB of free disk space, depending on your configuration.```
+
+
+
+1. Install the Xanmod kernel you want to build; for example, to build kernel `6.1 LTS`, install the official Xanmod 6.1 build and boot into it.
 
 2. Clone the Xanmod source:
     
