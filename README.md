@@ -112,3 +112,23 @@ Test thoroughly, and if all goes well, edit the `config` file in the repository 
  Make sure to enable **Full LTO** in your configs and if you have 4 gb ram or less then cosider enabling **Thin LTO**
  
 You don't need to enable **LTO** in your local configs when building locally, as it increases build time. Just build without **LTO** and enable **Full LTO** in your config when committing the .config to the repo for all the benefits of **LTO**.
+
+### **TL;DR**
+
+This is a straightforward workflow for building the Xanmod kernel with Clang/LLVM on Ubuntu/Debian. It uses the latest LLVM version (19 at the time of writing) and has options for building a non-generic kernel (`build`) or a generic kernel with Full LTO and `CONFIG_PREEMPT=y` (`build_generic`).
+
+The document provides a beginner-friendly guide to create a device-specific kernel config:
+
+1. Install Xanmod kernel you want to build.
+2. Clone Xanmod source.
+3. Install build dependencies.
+4. Add swap/zram if <16GB RAM.
+5. Use `make localyesconfig` to generate a config based on your system.
+6. Customize the config via `make xconfig` or `make menuconfig`.
+7. Build kernel with `make CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 LOCALVERSION=-xanmod-clang deb-pkg -j$(nproc)`.
+8. Install .deb packages.
+
+Tips:
+- Enable Full LTO in configs.
+- Use Thin LTO if <4GB RAM.
+- Build without LTO locally, enable Full LTO when committing config.
