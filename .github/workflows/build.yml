@@ -82,10 +82,19 @@ jobs:
           cd ..
           cp xanmod/.config config
           rm -rf xanmod *.gz *.dsc *.buildinfo *.changes 
+          tar czvf Xanmod-${{ github.event.inputs.KERNEL_VER }}-${{ github.event.inputs.LLVM_VER }}.tar.gz *.deb
 
-      - name: Upload kernel
+      - name: Upload-Kernel
         uses: actions/upload-artifact@v4
         with:
-          name: Xanmod-${{ github.event.inputs.KERNEL_VER }}-${{ github.event.inputs.LLVM_VER }}
+          name: Xanmod-${{ github.event.inputs.KERNEL_VER }}-${{ github.event.inputs.LLVM_VER }}-nongenric
           path: kernel/
-          compression-level: 9
+          compression-level: 0
+
+      - name: Upload to Telegram
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          document: kernel/Xanmod*.gz
+          message: "Xanmod-Generic-${{ github.event.inputs.KERNEL_VER }} clang-${{ github.event.inputs.LLVM_VER }} Completed"
