@@ -10,7 +10,7 @@ on:
       KERNEL_VER:
         description: 'KERNEL_VER (Specify XANMOD branch to build)'
         required: true
-        default: '6.6'
+        default: '6.7'
 
 jobs:
   build:
@@ -90,3 +90,14 @@ jobs:
           name: Xanmod-${{ github.event.inputs.KERNEL_VER }}-${{ github.event.inputs.LLVM_VER }}-nongenric
           path: kernel/
           compression-level: 0
+
+      - name: Upload binaries to release
+         uses: svenstaro/upload-release-action@v2
+         with:
+           repo_token: ${{ secrets.GITHUB_TOKEN }}
+           file: kernel/Xanmod*.zst
+           tag: non-generic-${{ github.run_id }}
+           body: |
+           HP-250 G6
+           Xanmod: ${{ github.event.inputs.KERNEL_VER }} 
+           Clang: ${{ github.event.inputs.LLVM_VER }}
