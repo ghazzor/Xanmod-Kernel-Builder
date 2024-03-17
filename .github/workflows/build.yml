@@ -94,10 +94,10 @@ jobs:
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
-           repo_token: ${{ secrets.GITHUB_TOKEN }}
-           file: kernel/Xanmod*.zst
-           tag: non-generic-${{ github.run_id }}
-           body: |
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: kernel/Xanmod*.zst
+          tag: non-generic-${{ github.run_id }}
+          body: |
             HP-250 G6
             Xanmod: ${{ github.event.inputs.KERNEL_VER }} 
             Clang: ${{ github.event.inputs.LLVM_VER }}
