@@ -82,8 +82,9 @@ jobs:
           cd ..
           cp xanmod/.config config
           rm -rf xanmod *.gz *.dsc *.buildinfo *.changes 
-          tar -cf - *.deb | zstd > Xanmod-${{ github.event.inputs.KERNEL_VER }}-${{ github.event.inputs.LLVM_VER }}.tar.zst
-
+          tar cvf Xanmod-${{ github.event.inputs.KERNEL_VER }}-${{ github.event.inputs.LLVM_VER }}.tar *.deb
+          rm -rf *.deb
+          
       - name: Upload-Kernel
         uses: actions/upload-artifact@v4
         with:
@@ -95,7 +96,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: kernel/Xanmod*.zst
+          file: kernel/Xanmod*.tar
           tag: non-generic-${{ github.run_id }}
           body: |
             HP-250 G6
