@@ -21,6 +21,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+          
+      - name: Environment Variables
+        run: |
+          echo 'LLVM_VER == > ${{ github.event.inputs.LLVM_VER }}'
+          echo 'KERNEL_VER == > ${{ github.event.inputs.KERNEL_VER }}'
 
       - name: Install packages & setup
         run: |
