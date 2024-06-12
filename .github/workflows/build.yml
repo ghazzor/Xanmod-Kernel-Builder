@@ -70,24 +70,28 @@ jobs:
 
       - name: Run Build
         run: |
-          cp config kernel/xanmod/.config
+          cp config kernel/xanmod/arch/x86/configs/ng_defconfig
           cd kernel/xanmod
           sed -i 's/KBUILD_CFLAGS += -O2/KBUILD_CFLAGS += -O3/' Makefile
-          make clean
+
           rm -rf vmlinux-gdb.py
           export LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}
-          make \
-            CC=clang${LLVM_SUFFIX} \
-            LD=ld.lld${LLVM_SUFFIX} \
-            LLVM=1 \
-            LLVM_IAS=1 \
-            LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }} \
-            LOCALVERSION=-xanmod-${{ github.event.inputs.KERNEL_VER }}-clang-${{ github.event.inputs.LLVM_VER }} \
-            deb-pkg -j$(nproc)
+          
+          ARGS='
+          CC=clang${LLVM_SUFFIX}
+          LD=ld.lld${LLVM_SUFFIX}
+          LLVM=1
+          LLVM_IAS=1
+          LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}            
+          LOCALVERSION=-xanmod-${{ github.event.inputs.KERNEL_VER }}-clang-${{ github.event.inputs.LLVM_VER }}
+          '
 
+          make ${ARGS} ng_defconfig
+          make ${ARGS} deb-pkg -j$(nproc)
+          
           cd ..
           cp xanmod/.config config
-          rm -rf xanmod *.gz *.dsc *.buildinfo *.changes 
+          rm -rf xanmod *.gz *.dsc *.buildinfo *.changes
 
       - name: Upload kernel
         uses: actions/upload-artifact@v4
