@@ -71,7 +71,6 @@ jobs:
       - name: Run Build
         run: |
           cp config kernel/xanmod/arch/x86/configs/ng_defconfig
-          cp kernel.config kernel/xanmod/arch/x86/configs/kernel.config
           cd kernel/xanmod
           sed -i 's/KBUILD_CFLAGS += -O2/KBUILD_CFLAGS += -O3/' Makefile
 
@@ -88,7 +87,7 @@ jobs:
           LDFLAGS="--lto-O3"
           '
 
-          make ${ARGS} ng_defconfig kernel.config
+          make ${ARGS} ng_defconfig
           make ${ARGS} deb-pkg -j$(nproc)
           
           cd ..
