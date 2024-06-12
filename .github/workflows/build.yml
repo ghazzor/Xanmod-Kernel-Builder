@@ -84,6 +84,7 @@ jobs:
           LLVM_IAS=1
           LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}            
           LOCALVERSION=-xanmod-${{ github.event.inputs.KERNEL_VER }}-clang-${{ github.event.inputs.LLVM_VER }}
+          LDFLAGS="--lto-O3"
           '
 
           make ${ARGS} ng_defconfig
