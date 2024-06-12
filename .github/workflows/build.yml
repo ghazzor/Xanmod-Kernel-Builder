@@ -6,11 +6,11 @@ on:
       LLVM_VER:
         description: 'LLVM_VER (Specify LLVM Version)'
         required: true
-        default: '18'
+        default: '19'
       KERNEL_VER:
         description: 'KERNEL_VER (Specify XANMOD branch to build)'
         required: true
-        default: '6.8'
+        default: '6.9'
 
 jobs:
   build:
@@ -71,6 +71,7 @@ jobs:
       - name: Run Build
         run: |
           cp config kernel/xanmod/arch/x86/configs/ng_defconfig
+          cp kernel.config kernel/xanmod/arch/x86/configs/kernel.config
           cd kernel/xanmod
           sed -i 's/KBUILD_CFLAGS += -O2/KBUILD_CFLAGS += -O3/' Makefile
 
@@ -87,7 +88,7 @@ jobs:
           LDFLAGS="--lto-O3"
           '
 
-          make ${ARGS} ng_defconfig
+          make ${ARGS} ng_defconfig kernel.config
           make ${ARGS} deb-pkg -j$(nproc)
           
           cd ..
