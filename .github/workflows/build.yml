@@ -72,6 +72,7 @@ jobs:
         run: |
           cp config kernel/xanmod/.config
           cd kernel/xanmod
+          sed -i 's/KBUILD_CFLAGS += -O2/KBUILD_CFLAGS += -O3/' Makefile
           make clean
           rm -rf vmlinux-gdb.py
           export LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}
