@@ -6,11 +6,11 @@ on:
       LLVM_VER:
         description: 'LLVM_VER (Specify LLVM Version)'
         required: true
-        default: '19'
+        default: '18'
       KERNEL_VER:
         description: 'KERNEL_VER (Specify XANMOD branch to build)'
         required: true
-        default: '6.6'
+        default: '6.9'
 
 jobs:
   build:
@@ -19,9 +19,6 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - config: v1
-          - config: v2
-          - config: v3
           - config: v4
     name: "🚧 Build Xanmod for x86-64-${{matrix.config}}"
 
@@ -48,6 +45,8 @@ jobs:
           sudo apt install \
             wget \
             build-essential \
+            curl \
+            jq \
             bison \
             flex \
             pkg-config \
@@ -96,7 +95,7 @@ jobs:
           LLVM=1
           LLVM_IAS=1
           LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}            
-          LOCALVERSION=-xanmod-${{ github.event.inputs.KERNEL_VER }}-clang-${{ github.event.inputs.LLVM_VER }}
+          LOCALVERSION=-zen4-${{ github.event.inputs.KERNEL_VER }}-clang-${{ github.event.inputs.LLVM_VER }}
           '
 
           make ${ARGS} ${{ matrix.config }}_defconfig config_generic.config
@@ -111,4 +110,22 @@ jobs:
         with:
           name: Xanmod-${{ github.event.inputs.KERNEL_VER }}-${{ github.event.inputs.LLVM_VER }}-config_x86-64-${{ matrix.config }}
           path: kernel/
-          compression-level: 9
+          compression-level: 0
+
+      - name: Tar the kernel
+        run: |
+          cd kernel/ && tar -cvf ../xanmod-zen4-${{ github.event.inputs.KERNEL_VER }}-${{ github.event.inputs.LLVM_VER }}.tar . && cd - 
+          
+      - name: Tar the kernel
+        run: |
+          wget https://raw.githubusercontent.com/Sushrut1101/GoFile-Upload/master/upload.sh
+          chmod +x upload.sh
+          ./upload.sh xanmod-*.tar 2>&1 | tee linkk.txt
+
+      - name: Upload to Telegram
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          document: linkk.txt 
+          message: linkk.txt
