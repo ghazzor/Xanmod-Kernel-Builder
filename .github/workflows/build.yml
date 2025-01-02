@@ -2,88 +2,50 @@ name: build
 
 on:
   workflow_dispatch:
-    inputs:
-      LLVM_VER:
-        description: 'LLVM_VER (Specify LLVM Version)'
-        required: true
-        default: '19'
       KERNEL_VER:
         description: 'KERNEL_VER (Specify XANMOD branch to build)'
         required: true
-        default: '6.9'
+        default: '6.12'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    container: library/archlinux:latest 
 
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-          
       - name: Environment Variables
         run: |
-          echo 'LLVM_VER == > ${{ github.event.inputs.LLVM_VER }}'
           echo 'KERNEL_VER == > ${{ github.event.inputs.KERNEL_VER }}'
 
       - name: Install packages & setup
         run: |
-          sudo apt update
-          sudo apt purge firefox -y
-          sudo apt upgrade
+          pacman -Syu -y
+          pacman -S sudo base-devel clang libelf dpkg elfutils git llvm lld bc vim nano cpio -y
           
-          sudo apt install \
-            wget \
-            build-essential \
-            bison \
-            flex \
-            pkg-config \
-            qtcreator \
-            qtbase5-dev \
-            qt5-qmake \
-            qttools5-dev-tools \
-            libssl-dev \
-            libncurses-dev \
-            git \
-            libelf-dev \
-            lz4 \
-            debhelper \
-            dh-virtualenv \
-            zstd \
-            elfutils -y
-
-      - name: Setup Clang/LLVM
-        run: |
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh ${{ github.event.inputs.LLVM_VER }}
-
       - name: Set Swap Space
         uses: pierotofy/set-swap-space@master
         with:
           swap-size-gb: 12
 
+      - name: Run Build
+        run: |
+          git clone --depth=1 https://github.com/ghazzor/Xanmod-Kernel-Builder -b main-3 wkdir
+
       - name: Clone Kernel Source
         run: |
-          git clone --depth=1 https://gitlab.com/xanmod/linux -b ${{ github.event.inputs.KERNEL_VER }} kernel/xanmod
+          git clone --depth=1 https://gitlab.com/xanmod/linux -b ${{ github.event.inputs.KERNEL_VER }} wkdir/kernel/xanmod
 
       - name: Run Build
         run: |
-          cp config kernel/xanmod/arch/x86/configs/ng_defconfig
-          cd kernel/xanmod
+          cp wkdir/config kernel/xanmod/arch/x86/configs/ng_defconfig
+          cd wkdir/kernel/xanmod
 
           rm -rf vmlinux-gdb.py
-          export LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}
           
           ARGS='
-          CC=clang${LLVM_SUFFIX}
-          LD=ld.lld${LLVM_SUFFIX}
           LLVM=1
-          LLVM_IAS=1
-          LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}            
-          LOCALVERSION=-xanmod-${{ github.event.inputs.KERNEL_VER }}-clang-${{ github.event.inputs.LLVM_VER }}
-          LDFLAGS="--lto-O3"
+          LLVM_IAS=1            
+          LOCALVERSION=-xanmod-${{ github.event.inputs.KERNEL_VER }}-clang
           '
 
           make ${ARGS} ng_defconfig
@@ -96,6 +58,6 @@ jobs:
       - name: Upload kernel
         uses: actions/upload-artifact@v4
         with:
-          name: Xanmod-${{ github.event.inputs.KERNEL_VER }}-${{ github.event.inputs.LLVM_VER }}
-          path: kernel/
+          name: Xanmod-${{ github.event.inputs.KERNEL_VER }}
+          path: wkdir/kernel/
           compression-level: 9
