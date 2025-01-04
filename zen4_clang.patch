@@ -1,0 +1,53 @@
+diff --git a/drivers/md/Makefile b/drivers/md/Makefile
+index 476a214e4..43eea892e 100644
+--- a/drivers/md/Makefile
++++ b/drivers/md/Makefile
+@@ -107,3 +107,6 @@ endif
+ ifeq ($(CONFIG_DM_AUDIT),y)
+ dm-mod-objs			+= dm-audit.o
+ endif
++
++badparms = -march=znver4 -mtune=znver4
++KBUILD_CFLAGS :=  $(filter-out $(badparams), $(KBUILD_CFLAGS))
+diff --git a/drivers/media/platform/ti/Makefile b/drivers/media/platform/ti/Makefile
+index 8a2f74c93..e2bd1228c 100644
+--- a/drivers/media/platform/ti/Makefile
++++ b/drivers/media/platform/ti/Makefile
+@@ -6,3 +6,8 @@ obj-y += davinci/
+ obj-y += j721e-csi2rx/
+ obj-y += omap/
+ obj-y += omap3isp/
++
++ifdef CONFIG_MZEN4
++badparms = -march=znver4 -mtune=znver4
++KBUILD_CFLAGS :=  $(filter-out $(badparams), $(KBUILD_CFLAGS))
++endif
+diff --git a/net/ipv6/Makefile b/net/ipv6/Makefile
+index d283c59df..cf8bb21a1 100644
+--- a/net/ipv6/Makefile
++++ b/net/ipv6/Makefile
+@@ -49,6 +49,11 @@ obj-$(CONFIG_INET) += output_core.o protocol.o \
+ 
+ obj-$(subst m,y,$(CONFIG_IPV6)) += inet6_hashtables.o
+ 
++ifdef CONFIG_MZEN4
++badparms = -march=znver4 -mtune=znver4
++KBUILD_CFLAGS :=  $(filter-out $(badparams), $(KBUILD_CFLAGS))
++endif
++
+ ifneq ($(CONFIG_IPV6),)
+ obj-$(CONFIG_NET_UDP_TUNNEL) += ip6_udp_tunnel.o
+ obj-y += mcast_snoop.o
+diff --git a/scripts/Makefile.uarches b/scripts/Makefile.uarches
+index 59e6664c6..4fe3f53ac 100644
+--- a/scripts/Makefile.uarches
++++ b/scripts/Makefile.uarches
+@@ -129,7 +129,7 @@ cflagsx64-$(CONFIG_MEXCAVATOR) 	+= -march=bdver4 -mno-tbm
+ cflagsx64-$(CONFIG_MZEN) 		+= -march=znver1
+ cflagsx64-$(CONFIG_MZEN2) 	+= -march=znver2
+ cflagsx64-$(CONFIG_MZEN3) 	+= -march=znver3
+-cflagsx64-$(CONFIG_MZEN4) 	+= -march=znver4
++cflagsx64-$(CONFIG_MZEN4) 	+= -march=znver4 -mtune=znver4
+ cflagsx64-$(CONFIG_MZEN5) 	+= -march=znver5
+ cflagsx64-$(CONFIG_MNATIVE_INTEL) += -march=native
+ cflagsx64-$(CONFIG_MNATIVE_AMD) 	+= -march=native -mno-tbm

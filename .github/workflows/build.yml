@@ -6,11 +6,11 @@ on:
       LLVM_VER:
         description: 'LLVM_VER (Specify LLVM Version)'
         required: true
-        default: '19'
+        default: '20'
       KERNEL_VER:
         description: 'KERNEL_VER (Specify XANMOD branch to build)'
         required: true
-        default: '6.6'
+        default: '6.12'
 
 jobs:
   build:
@@ -71,7 +71,9 @@ jobs:
       - name: Run Build
         run: |
           cp config kernel/xanmod/.config
+          cp zen4_clang.patch kernel/xanmod/
           cd kernel/xanmod
+          git apply zen4_clang.patch
           make clean
           rm -rf vmlinux-gdb.py
           export LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}
@@ -81,7 +83,7 @@ jobs:
             LLVM=1 \
             LLVM_IAS=1 \
             LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }} \
-            LOCALVERSION=-xanmod-${{ github.event.inputs.KERNEL_VER }}-clang-${{ github.event.inputs.LLVM_VER }} \
+            LOCALVERSION=-clang-${{ github.event.inputs.LLVM_VER }} \
             deb-pkg -j$(nproc)
 
           cd ..
