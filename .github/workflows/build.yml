@@ -70,21 +70,33 @@ jobs:
 
       - name: Run Build
         run: |
-          cp config kernel/xanmod/.config
+          cp config kernel/xanmod/arch/x86/configs/omen16_defconfig
           cp zen4_clang.patch kernel/xanmod/
           cd kernel/xanmod
+          echo " "
+          echo " "
+          echo "===="
+          echo "===="
+          echo "====patching for zen4===="
           git apply zen4_clang.patch
+          echo "====done===="
+          echo "===="
+          echo "===="
+          echo " "
+          echo " "
           make clean
           rm -rf vmlinux-gdb.py
+
+          ARGS='
+          CC=clang${LLVM_SUFFIX}
+          LD=ld.lld${LLVM_SUFFIX}
+          LLVM=1
+          LLVM_IAS=1
+          LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}
+          '
           export LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}
-          make \
-            CC=clang${LLVM_SUFFIX} \
-            LD=ld.lld${LLVM_SUFFIX} \
-            LLVM=1 \
-            LLVM_IAS=1 \
-            LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }} \
-            LOCALVERSION=-clang-${{ github.event.inputs.LLVM_VER }} \
-            deb-pkg -j$(nproc)
+          make ${ARGS} omen16_defconfig
+          make ${ARGS} LOCALVERSION=-clang-${{ github.event.inputs.LLVM_VER }} deb-pkg -j$(nproc)
 
           cd ..
           cp xanmod/.config config
@@ -95,4 +107,4 @@ jobs:
         with:
           name: Xanmod-${{ github.event.inputs.KERNEL_VER }}-${{ github.event.inputs.LLVM_VER }}
           path: kernel/
-          compression-level: 9
+          compression-level: 0
