@@ -58,7 +58,7 @@ sudo apt install gcc clang llvm lld g++ build-essential bison flex pkg-config qt
 4. If you less than 16 gb ram then add some disk swap or zram , you can google it
    i have 12 gb of DDR4 , so i added some zram , which made the build process slightly faster
   
-5. We are going to use `make localyesconfig` to make a stripped down config.
+5. We are going to use `make localyesconfig` / `make localmodconfig` to make a stripped down config
 
    It Create a config based on current config and loaded modules (lsmod). Disables any module option that is not needed for the loadedmodules. Make sure to connect all the usb devices and turn on bluetooth and be connected to internet then cd to `kernel/xanmod` and run
 
@@ -105,13 +105,21 @@ sudo dpkg -i *.deb
  boot into the kernel and check it with `uname -r`
  it should be something like `xxx-xanmod-clang-xxx`
 
-Test thoroughly, and if all goes well, edit the `config` file in the repository and paste the content from your .config file, located in the `xanmod` directory.
+Test thoroughly , and if all goes well, edit the `config` file in the repository and paste the content from your .config file, located in the `xanmod` directory.
+
+**NOTE**: You will need to perform several recompiles before achieving a configuration suitable for daily use. It’s also essential to always have an official kernel installation that works as a fallback.
 
 #### Tips
 
  Make sure to enable **Full LTO** in your configs and if you have 4 gb ram or less then cosider enabling **Thin LTO**
  
 You don't need to enable **LTO** in your local configs when building locally, as it increases build time. Just build without **LTO** and enable **Full LTO** in your config when committing the .config to the repo for all the benefits of **LTO**.
+
+If the compilation fails due to CPU-specific optimizations, refer to [zen4_clang.patch](zen4_clang.patch).You can apply these workarounds for now, or alternatively, compile your own version of Clang with the necessary fixes.
+
+sources:
+- https://github.com/llvm/llvm-project/issues/72026
+- https://github.com/CachyOS/kernel-patches/issues/65
 
 ### **TL;DR**
 
