@@ -87,6 +87,8 @@ jobs:
           make clean
           rm -rf vmlinux-gdb.py
 
+          sed -i 's/KBUILD_CFLAGS += -O2/KBUILD_CFLAGS += -O3/' Makefile
+
           ARGS='
           CC=clang${LLVM_SUFFIX}
           LD=ld.lld${LLVM_SUFFIX}
@@ -95,8 +97,8 @@ jobs:
           LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}
           '
           export LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}
-          make ${ARGS} omen16_defconfig
-          make ${ARGS} LOCALVERSION=-clang-${{ github.event.inputs.LLVM_VER }} deb-pkg -j$(nproc)
+          make ${ARGS} KCFLAGS=-O3 LDFLAGS=--lto-O3 omen16_defconfig
+          make ${ARGS} KCFLAGS=-O3 LDFLAGS=--lto-O3 LOCALVERSION=-clang-${{ github.event.inputs.LLVM_VER }} deb-pkg -j$(nproc)
 
           cd ..
           cp xanmod/.config config
