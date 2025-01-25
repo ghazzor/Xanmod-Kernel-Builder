@@ -1,0 +1,89 @@
+name: build
+
+on:
+  workflow_dispatch:
+    inputs:
+      GCC_VER:
+        description: 'GCC_VER (Specify LLVM Version)'
+        required: true
+        default: '14'
+      KERNEL_VER:
+        description: 'KERNEL_VER (Specify XANMOD branch to build)'
+        required: true
+        default: '6.12'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          
+      - name: Environment Variables
+        run: |
+          echo 'GCC_VER == > ${{ github.event.inputs.GCC_VER }}'
+          echo 'KERNEL_VER == > ${{ github.event.inputs.KERNEL_VER }}'
+
+      - name: Install packages & setup
+        run: |
+          sudo apt update
+          sudo apt purge firefox -y
+          sudo apt upgrade
+          
+          sudo apt install \
+            wget \
+            build-essential \
+            bison \
+            flex \
+            pkg-config \
+            qtcreator \
+            qtbase5-dev \
+            qt5-qmake \
+            qttools5-dev-tools \
+            libssl-dev \
+            libncurses-dev \
+            git \
+            libelf-dev \
+            lz4 \
+            debhelper \
+            dh-virtualenv \
+            zstd \
+            elfutils \
+            gcc-${{ github.event.inputs.GCC_VER }} \
+            g++-${{ github.event.inputs.GCC_VER }} -y
+            
+           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${{ github.event.inputs.GCC_VER }} 10
+           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${{ github.event.inputs.GCC_VER }} 10
+
+      - name: Set Swap Space
+        uses: pierotofy/set-swap-space@master
+        with:
+          swap-size-gb: 12
+
+      - name: Clone Kernel Source
+        run: |
+          git clone --depth=1 https://gitlab.com/xanmod/linux -b ${{ github.event.inputs.KERNEL_VER }} kernel/xanmod
+
+      - name: Run Build
+        run: |
+          cp config kernel/xanmod/arch/x86/configs/omen16_defconfig
+          cd kernel/xanmod
+          make clean
+          sed -i "s/znver4/znver4 -mtune=znver4/g" scripts/Makefile.uarches
+          rm -rf vmlinux-gdb.py
+          make omen16_defconfig
+          make deb-pkg -j$(nproc)
+
+          cd ..
+          cp xanmod/.config config
+          rm -rf xanmod *.gz *.dsc *.buildinfo *.changes 
+
+      - name: Upload kernel
+        uses: actions/upload-artifact@v4
+        with:
+          name: Xanmod-${{ github.event.inputs.KERNEL_VER }}-${{ github.event.inputs.GCC_VER }}
+          path: kernel/
+          compression-level: 0
