@@ -94,7 +94,7 @@ jobs:
           LLVM_IAS=1
           LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}            
           LOCALVERSION=-clang-${{ github.event.inputs.LLVM_VER }}
-          KCFLAGS="-O3 -march=x86-64-${{matrix.config}}"
+          KCFLAGS=-O3
           LDFLAGS=--lto-O3
           '
 
