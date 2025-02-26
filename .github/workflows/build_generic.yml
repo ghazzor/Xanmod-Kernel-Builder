@@ -19,8 +19,6 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - config: v1
-          - config: v2
           - config: v3
     name: "🚧 Build Xanmod for x86-64-${{matrix.config}}"
 
@@ -83,8 +81,8 @@ jobs:
         run: |
           cp config_generic kernel/xanmod/arch/x86/configs/config_generic.config
           cd kernel/xanmod
-          cp CONFIGS/xanmod/gcc/config_x86-64-${{ matrix.config }} arch/x86/configs/${{ matrix.config }}_defconfig 
-          
+          cp CONFIGS/xanmod/gcc/config_x86-64-${{ matrix.config }} arch/x86/configs/${{ matrix.config }}_defconfig
+          sed -i 's/KBUILD_CFLAGS += -O2/KBUILD_CFLAGS += -O3/' Makefile
           make clean
           rm -rf vmlinux-gdb.py
           export LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}
@@ -96,6 +94,8 @@ jobs:
           LLVM_IAS=1
           LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}            
           LOCALVERSION=-clang-${{ github.event.inputs.LLVM_VER }}
+          KCFLAGS="-O3 -march=x86-64-${{matrix.config}}"
+          LDFLAGS=--lto-O3
           '
 
           make ${ARGS} ${{ matrix.config }}_defconfig config_generic.config
