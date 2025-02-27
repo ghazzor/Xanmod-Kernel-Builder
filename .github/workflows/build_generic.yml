@@ -15,6 +15,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     strategy:
       fail-fast: true
       matrix:
@@ -105,9 +107,12 @@ jobs:
           cp xanmod/.config config
           rm -rf xanmod *.gz *.dsc *.buildinfo *.changes 
 
-      - name: Upload-Kernel
-        uses: actions/upload-artifact@v4
+      - name: Set Release Tag Output
+        id: release-tag
+        run: echo "NOW=$(date "+%y%m%d%H%M")" >> "$GITHUB_OUTPUT"
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
         with:
-          name: Xanmod-${{ github.event.inputs.KERNEL_VER }}-${{ github.event.inputs.LLVM_VER }}-config_x86-64-${{ matrix.config }}
-          path: kernel/
-          compression-level: 0
+          artifacts: "./kernel/*"
+          tag: xanmod-${{ github.event.inputs.KERNEL_VER }}-${{ github.event.inputs.LLVM_VER }}-x86-64-${{ matrix.config }}-${{ steps.release-tag.outputs.NOW }}
