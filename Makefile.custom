@@ -1,0 +1,15 @@
+KBUILD_CFLAGS += -O2
+
+#KBUILD_CFLAGS += -mllvm -polly \
+#       -mllvm -polly-run-dce \
+#       -mllvm -polly-run-inliner \
+#       -mllvm -polly-loopfusion-greedy \
+#       -mllvm -polly-ast-use-context \
+#       -mllvm -polly-detect-keep-going \
+#       -mllvm -polly-vectorizer=stripmine \
+#       -mllvm -polly-invariant-load-hoisting
+
+#KBUILD_CFLAGS += -Xclang -load -Xclang LLVMPolly.so
+KBUILD_CFLAGS += -mllvm -inline-threshold=450
+KBUILD_CFLAGS += -mllvm -inlinehint-threshold=525
+KBUILD_LDFLAGS += --lto-O2

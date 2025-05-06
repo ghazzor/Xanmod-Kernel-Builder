@@ -3,10 +3,6 @@ name: build
 on:
   workflow_dispatch:
     inputs:
-      LLVM_VER:
-        description: 'LLVM_VER (Specify LLVM Version)'
-        required: true
-        default: '20'
       KERNEL_VER:
         description: 'KERNEL_VER (Specify XANMOD branch to build)'
         required: true
@@ -15,18 +11,27 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    name: "🚧 Build Xanmod for omen16"
 
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-          
+
       - name: Environment Variables
         run: |
-          echo 'LLVM_VER == > ${{ github.event.inputs.LLVM_VER }}'
           echo 'KERNEL_VER == > ${{ github.event.inputs.KERNEL_VER }}'
 
+      - name: Free up Disk Space
+        run: |
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+                 
       - name: Install packages & setup
         run: |
           sudo apt update
@@ -51,13 +56,8 @@ jobs:
             debhelper \
             dh-virtualenv \
             zstd \
+            llvm-19 clang-19 lld-19 \
             elfutils -y
-
-      - name: Setup Clang/LLVM
-        run: |
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh ${{ github.event.inputs.LLVM_VER }}
 
       - name: Set Swap Space
         uses: pierotofy/set-swap-space@master
@@ -71,40 +71,36 @@ jobs:
       - name: Run Build
         run: |
           cp config kernel/xanmod/arch/x86/configs/omen16_defconfig
-          cp zen4_clang.patch kernel/xanmod/
+          cp omen16.config kernel/xanmod/arch/x86/configs/omen16.config
+          cp Kconfig.custom kernel/xanmod/
+          cp Makefile.custom kernel/xanmod/
           cd kernel/xanmod
-          echo " "
-          echo " "
-          echo "===="
-          echo "===="
-          echo "====patching for zen4===="
-          git apply zen4_clang.patch
-          echo "====done===="
-          echo "===="
-          echo "===="
-          echo " "
-          echo " "
+          sed -i 's/KBUILD_CFLAGS += -O2/include \$(srctree)\/Makefile.custom/g' Makefile
+          echo 'source "Kconfig.custom"' >> Kconfig
           make clean
           rm -rf vmlinux-gdb.py
-
+          export LLVM_SUFFIX=-19
+          
           ARGS='
           CC=clang${LLVM_SUFFIX}
           LD=ld.lld${LLVM_SUFFIX}
           LLVM=1
           LLVM_IAS=1
-          LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}
+          LLVM_SUFFIX=-19
           '
-          export LLVM_SUFFIX=-${{ github.event.inputs.LLVM_VER }}
-          make ${ARGS} omen16_defconfig
-          make ${ARGS} LOCALVERSION=-clang-${{ github.event.inputs.LLVM_VER }} deb-pkg -j$(nproc)
 
-          cd ..
-          cp xanmod/.config config
-          rm -rf xanmod *.gz *.dsc *.buildinfo *.changes 
+          make ${ARGS} omen16_defconfig omen16.config
+          make ${ARGS} INSTALL_MOD_STRIP=1 dir-pkg -j$(nproc)
+          rm -rf tar-install/boot/vmlinux-*
+          tar cvf xanmod-${{ github.event.inputs.KERNEL_VER }}-19-omen16.tar ./tar-install/
+          xz xanmod-${{ github.event.inputs.KERNEL_VER }}-19-omen16.tar
 
-      - name: Upload kernel
-        uses: actions/upload-artifact@v4
+      - name: Set Release Tag Output
+        id: release-tag
+        run: echo "NOW=$(date "+%y%m%d%H%M")" >> "$GITHUB_OUTPUT"
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
         with:
-          name: Xanmod-${{ github.event.inputs.KERNEL_VER }}-${{ github.event.inputs.LLVM_VER }}
-          path: kernel/
-          compression-level: 0
+          artifacts: "./kernel/xanmod/*tar.xz"
+          tag: xanmod-${{ github.event.inputs.KERNEL_VER }}-19-omen16-${{ steps.release-tag.outputs.NOW }}
